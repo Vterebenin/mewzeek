@@ -1,2 +1,2 @@
 # mewzeek
-idk yet, just tweking actix
+idk yet, just tweaking actix

@@ -4,16 +4,18 @@ mod jwt_auth;
 mod model;
 mod response;
 mod helpers;
+mod schema;
 
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{http::header, web, App, HttpServer};
 use config::Config;
 use dotenv::dotenv;
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use diesel::r2d2::{self, ConnectionManager};
+use diesel::PgConnection;
 
 pub struct AppState {
-    db: Pool<Postgres>,
+    db: r2d2::Pool<ConnectionManager<PgConnection>>,
     env: Config,
 }
 
@@ -27,20 +29,9 @@ async fn main() -> std::io::Result<()> {
 
     let config = Config::init();
 
-    let pool = match PgPoolOptions::new()
-        .max_connections(10)
-        .connect(&config.database_url)
-        .await
-    {
-        Ok(pool) => {
-            println!("✅Connection to the database is successful!");
-            pool
-        }
-        Err(err) => {
-            println!("🔥 Failed to connect to the database: {:?}", err);
-            std::process::exit(1);
-        }
-    };
+    let manager = ConnectionManager::<PgConnection>::new(&config.database_url);
+    let pool = r2d2::Pool::builder().build(manager).expect("🔥 Failed to connect to the database");
+    println!("✅Connection to the database is successful!");
 
     println!("🚀 Server started successfully");
 

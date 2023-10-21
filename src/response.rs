@@ -11,7 +11,6 @@ pub struct FilteredUser {
     #[validate(email)]
     pub email: String,
     pub role: String,
-    pub photo: String,
     pub verified: bool,
     pub createdAt: DateTime<Utc>,
     pub updatedAt: DateTime<Utc>,

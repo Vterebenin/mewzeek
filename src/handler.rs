@@ -17,6 +17,7 @@ use chrono::{prelude::*, Duration};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde_json::json;
 use sqlx::Row;
+use validator::Validate;
 
 fn filter_user_record(user: &User) -> FilteredUser {
     FilteredUser {
@@ -36,6 +37,12 @@ async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
     data: web::Data<AppState>,
 ) -> impl Responder {
+    let body_items = body.clone();
+    
+    match body_items.validate() {
+      Ok(_) => (),
+      Err(e) => println!("{}", e),
+    };
     let exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
         .bind(body.email.to_owned())
         .fetch_one(&data.db)
@@ -47,7 +54,7 @@ async fn register_user_handler(
         return create_conflict_response("User with that email already exists".to_string());
     }
     if body.password.is_empty() {
-        return create_error_response("Password should match the confirmation".to_string());
+        return create_error_response("Password should be atleast 1 length".to_string());
     }
     if body.password != body.password_confirmation {
         return create_error_response(format!("Password should match the confirmation"));

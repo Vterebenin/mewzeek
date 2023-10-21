@@ -1,5 +1,6 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, sqlx::FromRow, Serialize, Clone)]
@@ -24,10 +25,13 @@ pub struct TokenClaims {
     pub exp: usize,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate, Clone)]
 pub struct RegisterUserSchema {
+    #[validate(length(min = 1, message="Name should not be empty"))]
     pub name: String,
+    #[validate(email(message="Email should look like email"))]
     pub email: String,
+    #[validate(must_match(other = "password_confirmation", message="Passwords are not matching"))]
     pub password: String,
     #[serde(rename = "passwordConfirmation")]
     pub password_confirmation: String,

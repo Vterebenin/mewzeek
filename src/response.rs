@@ -1,11 +1,14 @@
 use chrono::prelude::*;
 use serde::Serialize;
+use validator::Validate;
 
 #[allow(non_snake_case)]
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Validate)]
 pub struct FilteredUser {
     pub id: String,
+    #[validate(length(min = 1))]
     pub name: String,
+    #[validate(email)]
     pub email: String,
     pub role: String,
     pub photo: String,

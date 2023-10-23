@@ -44,7 +44,7 @@ pub struct RegisterUserSchema {
     #[validate(email(message = "Email should look like email"))]
     pub email: String,
     #[validate(
-        length(min = 1, message = "Name should not be empty"),
+        length(min = 1, message = "Password should not be empty"),
         must_match(
             other = "password_confirmation",
             message = "Passwords are not matching"

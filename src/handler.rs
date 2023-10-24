@@ -57,7 +57,7 @@ async fn register_user_handler(
 
     // todo: probably should be in validator
     if !existed_users.is_empty() {
-        return create_conflict_response("User with that email already exists".to_string());
+        return create_conflict_response("email_conflict".to_string());
     }
 
     let hashed_password = get_password_hash(&body.password);

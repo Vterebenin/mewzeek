@@ -7,8 +7,10 @@ use actix_web::{http, web, FromRequest, HttpMessage, HttpRequest};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use serde::Serialize;
 
-use crate::model::TokenClaims;
+use crate::model::{TokenClaims, User};
 use crate::AppState;
+use diesel::prelude::*;
+use crate::schema::users::dsl::*;
 
 #[derive(Debug, Serialize)]
 struct ErrorResponse {
@@ -24,6 +26,7 @@ impl fmt::Display for ErrorResponse {
 
 pub struct JwtMiddleware {
     pub user_id: uuid::Uuid,
+    pub user: User,
 }
 
 impl FromRequest for JwtMiddleware {
@@ -68,6 +71,12 @@ impl FromRequest for JwtMiddleware {
         req.extensions_mut()
             .insert::<uuid::Uuid>(user_id.to_owned());
 
-        ready(Ok(JwtMiddleware { user_id }))
+        let user = users
+            .filter(id.eq(user_id))
+            .select(User::as_select())
+            .first(&mut data.db.get().unwrap())
+            .expect("Error fetching user");
+
+        ready(Ok(JwtMiddleware { user_id, user }))
     }
 }

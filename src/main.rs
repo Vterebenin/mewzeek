@@ -34,11 +34,10 @@ async fn main() -> std::io::Result<()> {
     println!("✅Connection to the database is successful!");
 
     println!("🚀 Server started successfully");
-
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin("http://localhost:5173")
-            .allowed_origin("https://mewzeek-front.vercel.app/")
+            .allowed_origin("https://mewzeek.vercel.app/")
             .allowed_methods(vec!["GET", "POST", "PUT", "PATCH", "OPTIONS", "DELETE"])
             .allowed_headers(vec![
                 header::CONTENT_TYPE,
@@ -55,7 +54,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(Logger::default())
     })
-    .bind(("127.0.0.1", 8000))?
+    .bind("0.0.0.0:8088")?
     .run()
     .await
 }

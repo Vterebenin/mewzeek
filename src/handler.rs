@@ -1,8 +1,5 @@
 use crate::{
-    helpers::{
-        create_conflict_response, create_error_response, create_validation_errors_response,
-        get_password_hash,
-    },
+    helpers::{create_conflict_response, create_error_response, create_validation_errors_response, get_password_hash},
     jwt_auth,
     model::{LoginUserSchema, RegisterUserSchema, TokenClaims, User, NewUser},
     response::FilteredUser,

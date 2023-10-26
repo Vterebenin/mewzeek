@@ -10,17 +10,16 @@ use crate::{
 };
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie},
-    get, post, web, HttpMessage, HttpRequest, HttpResponse, Responder,
+    get, post, web, HttpRequest, HttpResponse, Responder,
 };
 use argon2::{
     password_hash::{PasswordHash, PasswordVerifier},
     Argon2,
 };
 use chrono::{prelude::*, Duration};
-use diesel::{helper_types::exists, QueryDsl, ExpressionMethods};
+use diesel::{QueryDsl, ExpressionMethods};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde_json::json;
-use sqlx::Row;
 use validator::Validate;
 use diesel::prelude::*;
 use crate::schema::users::dsl::*;
@@ -98,7 +97,7 @@ async fn login_user_handler(
 
     if !is_valid {
         return HttpResponse::BadRequest()
-            .json(json!({"status": "fail", "message": "Invalid email or password"}));
+            .json(json!({"status": "fail", "message": "incorrect_email_or_password"}));
     }
     let user = query_result.unwrap();
 
@@ -128,28 +127,26 @@ async fn login_user_handler(
         .cookie(cookie)
         .json(json!({"status": "success", "token": token}))
 }
-// 
-// 
-// #[get("/auth/logout")]
-// async fn logout_handler(_: jwt_auth::JwtMiddleware) -> impl Responder {
-//     let cookie = Cookie::build("token", "")
-//         .path("/")
-//         .max_age(ActixWebDuration::new(-1, 0))
-//         .http_only(true)
-//         .finish();
-// 
-//     HttpResponse::Ok()
-//         .cookie(cookie)
-//         .json(json!({"status": "success"}))
-// }
-// 
+
+#[get("/auth/logout")]
+async fn logout_handler(_: jwt_auth::JwtMiddleware) -> impl Responder {
+    let cookie = Cookie::build("token", "")
+        .path("/")
+        .max_age(ActixWebDuration::new(-1, 0))
+        .http_only(true)
+        .finish();
+
+    HttpResponse::Ok()
+        .cookie(cookie)
+        .json(json!({"status": "success"}))
+}
+
 #[get("/users/me")]
 async fn get_me_handler(
-    req: HttpRequest,
-    data: web::Data<AppState>,
+    _: HttpRequest,
+    _: web::Data<AppState>,
     auth: jwt_auth::JwtMiddleware,
 ) -> impl Responder {
-    let ext = req.extensions();
     let user = auth.user;
 
     let json_response = serde_json::json!(filter_user_record(&user));
@@ -161,7 +158,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/api")
         .service(register_user_handler)
         .service(login_user_handler)
-        // .service(logout_handler)
+        .service(logout_handler)
         .service(get_me_handler);
 
     conf.service(scope);
